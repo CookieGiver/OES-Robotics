@@ -94,8 +94,8 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
         // when you first test your robot, push the left joystick forward and observe the direction the wheels turn.
         // Reverse the direction (flip FORWARD <-> REVERSE ) of any wheel that runs backward
         // Keep testing until ALL the wheels move the robot forward when you push the left joystick forward.
-        leftFrontDrive.setDirection(DcMotor.Direction.REVERSE);
-        leftBackDrive.setDirection(DcMotor.Direction.REVERSE);
+        leftFrontDrive.setDirection(DcMotor.Direction.FORWARD);
+        leftBackDrive.setDirection(DcMotor.Direction.FORWARD);
         rightFrontDrive.setDirection(DcMotor.Direction.FORWARD);
         rightBackDrive.setDirection(DcMotor.Direction.FORWARD);
 
@@ -117,10 +117,18 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
 
             // Combine the joystick requests for each axis-motion to determine each wheel's power.
             // Set up a variable for each drive wheel to save the power level for telemetry.
-            double leftFrontPower  = axial + lateral + yaw;
-            double rightFrontPower = axial - lateral - yaw;
-            double leftBackPower   = axial - lateral + yaw;
-            double rightBackPower  = axial + lateral - yaw;
+            double leftFrontPower  = axial + lateral;
+            double rightFrontPower = axial - lateral;
+            double leftBackPower   = axial - lateral;
+            double rightBackPower  = axial + lateral;
+
+//            if yaw is not 0, then we need to rotate the robot
+            if (yaw != 0) {
+                leftFrontPower += yaw;
+                rightFrontPower -= yaw;
+                leftBackPower += yaw;
+                rightBackPower -= yaw;
+            }
 
             // Normalize the values so no wheel power exceeds 100%
             // This ensures that the robot maintains the desired motion.
@@ -128,11 +136,16 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
             max = Math.max(max, Math.abs(leftBackPower));
             max = Math.max(max, Math.abs(rightBackPower));
 
+
             if (max > 1.0) {
                 leftFrontPower  /= max;
+                leftFrontPower *= 0.5;
                 rightFrontPower /= max;
+                rightFrontPower *= 0.5;
                 leftBackPower   /= max;
+                leftBackPower *= 0.5;
                 rightBackPower  /= max;
+                rightBackPower *= 0.5;
             }
 
             // This is test code:
