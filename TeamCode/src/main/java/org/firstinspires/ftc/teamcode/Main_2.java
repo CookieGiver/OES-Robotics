@@ -202,23 +202,23 @@ public class Main_2 extends LinearOpMode {
             */
 
             // linear slides
-            double linearPower = gamepad2.left_stick_y/2;
-            float leftlinearSlidePos = leftLinearSlide.getCurrentPosition();
-            float rightLinearSlidePos = rightLinearSlide.getCurrentPosition();
+            float linearPower = gamepad2.left_stick_y/2;
+            leftLinearSlidePos = leftLinearSlide.getCurrentPosition();
+            rightLinearSlidePos = rightLinearSlide.getCurrentPosition();
 
-            if (-565.0 < leftLinearSlidePos && linearPower < 0) {
+            if (-460 < leftLinearSlidePos && linearPower < 0) {
                 leftLinearSlide.setPower((linearPower));
                 rightLinearSlide.setPower((linearPower));
 
-                if (-200 < leftLinearSlidePos) {
+                if (-200.0f < leftLinearSlidePos) {
                     magazineSpinner.setPosition(0.656);
                     stationaryMag = false;
                 }
-                else if (-400 < leftLinearSlidePos) {
+                else if (-350.0f < leftLinearSlidePos) {
                     magazineSpinner.setPosition(0.038);
                     stationaryMag = false;
                 }
-                else if (leftLinearSlidePos > -580) {
+                else if (leftLinearSlidePos > -460) {
                     magazineSpinner.setPosition(0.231);
                     stationaryMag = false;
                 }
@@ -231,6 +231,13 @@ public class Main_2 extends LinearOpMode {
             else if (linearPower > 0) {
                 leftLinearSlide.setPower((linearPower));
                 rightLinearSlide.setPower((linearPower));
+                if (-30 > leftLinearSlidePos) {
+                    magazineSpinner.setPosition(0.656);
+                    stationaryMag = false;
+                }
+                else {
+                    stationaryMag = true;
+                }
             }
             else {
                 leftLinearSlide.setPower(0.0);
@@ -322,7 +329,7 @@ public class Main_2 extends LinearOpMode {
 
             // Show the elapsed game time and wheel power.
             telemetry.addData("Magazine Position", magazineSpinner.getPosition());
-            telemetry.addData("Linear Slide Positions", leftlinearSlidePos);
+            telemetry.addData("Linear Slide Positions", leftLinearSlidePos);
             telemetry.addData("Linear Slide Power", linearPower);
             telemetry.addData("Servo Position", armPosition);
             telemetry.addData("Status", "Run Time: " + runtime.toString());
