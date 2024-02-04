@@ -63,26 +63,24 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list
  */
 
-@TeleOp(name="Basic: Omni Linear OpMode", group="Linear OpMode")
+@TeleOp
 //Disabled
-public class BasicOmniOpMode_Linear extends LinearOpMode {
+public class Linear_Slide_Test extends LinearOpMode {
 
     // Declare OpMode members for each of the 4 motors.
     private ElapsedTime runtime = new ElapsedTime();
-    private DcMotor leftFrontDrive = null;
-    private DcMotor leftBackDrive = null;
-    private DcMotor rightFrontDrive = null;
-    private DcMotor rightBackDrive = null;
+    private DcMotor linearSlideLeft = null;
+    private DcMotor linearSlideRight = null;
 
     @Override
     public void runOpMode() {
 
         // Initialize the hardware variables. Note that the strings used here must correspond
         // to the names assigned during the robot configuration step on the DS or RC devices.
-        leftFrontDrive  = hardwareMap.get(DcMotor.class, "left_front_drive");
-        leftBackDrive  = hardwareMap.get(DcMotor.class, "left_back_drive");
-        rightFrontDrive = hardwareMap.get(DcMotor.class, "right_front_drive");
-        rightBackDrive = hardwareMap.get(DcMotor.class, "right_back_drive");
+        linearSlideLeft  = hardwareMap.get(DcMotor.class, "left_linear_slide");
+        //leftBackDrive  = hardwareMap.get(DcMotor.class, "left_back_drive");
+        linearSlideRight = hardwareMap.get(DcMotor.class, "left_linear_slide");
+        //rightBackDrive = hardwareMap.get(DcMotor.class, "right_back_drive");
 
         // ########################################################################################
         // !!!            IMPORTANT Drive Information. Test your motor directions.            !!!!!
@@ -94,10 +92,10 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
         // when you first test your robot, push the left joystick forward and observe the direction the wheels turn.
         // Reverse the direction (flip FORWARD <-> REVERSE ) of any wheel that runs backward
         // Keep testing until ALL the wheels move the robot forward when you push the left joystick forward.
-        leftFrontDrive.setDirection(DcMotor.Direction.REVERSE);
-        leftBackDrive.setDirection(DcMotor.Direction.REVERSE);
-        rightFrontDrive.setDirection(DcMotor.Direction.FORWARD);
-        rightBackDrive.setDirection(DcMotor.Direction.FORWARD);
+        linearSlideLeft.setDirection(DcMotor.Direction.FORWARD);
+        //leftBackDrive.setDirection(DcMotor.Direction.REVERSE);
+        linearSlideRight.setDirection(DcMotor.Direction.FORWARD);
+        //rightBackDrive.setDirection(DcMotor.Direction.FORWARD);
 
         // Wait for the game to start (driver presses PLAY)
         telemetry.addData("Status", "Initialized");
@@ -153,10 +151,10 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
             */
 
             // Send calculated power to wheels
-            leftFrontDrive.setPower(leftFrontPower);
-            rightFrontDrive.setPower(rightFrontPower);
-            leftBackDrive.setPower(leftBackPower);
-            rightBackDrive.setPower(rightBackPower);
+            linearSlideLeft.setPower(leftFrontPower);
+            linearSlideRight.setPower(rightFrontPower);
+            //leftBackDrive.setPower(leftBackPower);
+            //rightBackDrive.setPower(rightBackPower);
 
             // Show the elapsed game time and wheel power.
             telemetry.addData("Status", "Run Time: " + runtime.toString());

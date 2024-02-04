@@ -33,7 +33,10 @@ import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.Range;
 
 /*
  * This file contains an example of a Linear "OpMode".
@@ -63,9 +66,9 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list
  */
 
-@TeleOp(name="Basic: Omni Linear OpMode", group="Linear OpMode")
+@TeleOp(name="Basic: Main", group="Linear OpMode")
 //Disabled
-public class BasicOmniOpMode_Linear extends LinearOpMode {
+public class Main_2 extends LinearOpMode {
 
     // Declare OpMode members for each of the 4 motors.
     private ElapsedTime runtime = new ElapsedTime();
@@ -74,15 +77,60 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
     private DcMotor rightFrontDrive = null;
     private DcMotor rightBackDrive = null;
 
+
+    private DcMotor leftLinearSlide = null;
+    private DcMotor rightLinearSlide = null;
+    private DcMotor intake = null;
+
+
+    private Servo airplane = null;
+    private Servo leftGateLifter = null;
+    private Servo rightGateLifter = null;
+    private Servo magazineSpinner = null;
+    private Servo magazineRelease = null;
+    private Servo intakeServo = null;
+    private Servo pixelPusher = null;
+
+    public final static double ARM_MIN = -1.0;
+    public final static double ARM_MAX = 1.0;
+    final double ARM_SPEED = 0.001;
+
+    public float leftLinearSlidePos;
+    public float rightLinearSlidePos;
+
+
+     
     @Override
     public void runOpMode() {
 
         // Initialize the hardware variables. Note that the strings used here must correspond
         // to the names assigned during the robot configuration step on the DS or RC devices.
-        leftFrontDrive  = hardwareMap.get(DcMotor.class, "left_front_drive");
-        leftBackDrive  = hardwareMap.get(DcMotor.class, "left_back_drive");
+        leftFrontDrive  = hardwareMap.get(DcMotor.class, "left_back_drive");
+        leftBackDrive  = hardwareMap.get(DcMotor.class, "left_front_drive");
         rightFrontDrive = hardwareMap.get(DcMotor.class, "right_front_drive");
         rightBackDrive = hardwareMap.get(DcMotor.class, "right_back_drive");
+
+        leftLinearSlide = hardwareMap.get(DcMotor.class, "left_linear_slide");
+        rightLinearSlide = hardwareMap.get(DcMotor.class, "right_linear_slide");
+
+        intake = hardwareMap.get(DcMotor.class, "intake");
+        intakeServo = hardwareMap.get(Servo.class, "intake_spin");
+
+        airplane = hardwareMap.get(Servo.class, "airplane_release");
+        leftGateLifter = hardwareMap.get(Servo.class, "left_gate_lifter");
+        rightGateLifter = hardwareMap.get(Servo.class, "right_gate_lifter");
+        magazineSpinner = hardwareMap.get(Servo.class, "spin");
+        magazineRelease = hardwareMap.get(Servo.class, "release");
+        pixelPusher = hardwareMap.get(Servo.class, "pusher");
+
+
+        double armPosition = 0.5;
+        double lifterPosition = 0.5;
+
+        boolean intakeDown = false;
+        boolean intakeOn = false;
+        boolean stationaryMag = true;
+
 
         // ########################################################################################
         // !!!            IMPORTANT Drive Information. Test your motor directions.            !!!!!
@@ -94,8 +142,8 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
         // when you first test your robot, push the left joystick forward and observe the direction the wheels turn.
         // Reverse the direction (flip FORWARD <-> REVERSE ) of any wheel that runs backward
         // Keep testing until ALL the wheels move the robot forward when you push the left joystick forward.
-        leftFrontDrive.setDirection(DcMotor.Direction.REVERSE);
-        leftBackDrive.setDirection(DcMotor.Direction.REVERSE);
+        leftFrontDrive.setDirection(DcMotor.Direction.FORWARD);
+        leftBackDrive.setDirection(DcMotor.Direction.FORWARD );
         rightFrontDrive.setDirection(DcMotor.Direction.FORWARD);
         rightBackDrive.setDirection(DcMotor.Direction.FORWARD);
 
@@ -109,6 +157,7 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
             double max;
+
 
             // POV Mode uses left joystick to go forward & strafe, and right joystick to rotate.
             double axial   = -gamepad1.left_stick_y;  // Note: pushing stick forward gives negative value
@@ -152,6 +201,119 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
             rightBackPower  = gamepad1.b ? 1.0 : 0.0;  // B gamepad
             */
 
+            // linear slides
+            double linearPower = gamepad2.left_stick_y/2;
+            float leftlinearSlidePos = leftLinearSlide.getCurrentPosition();
+            float rightLinearSlidePos = rightLinearSlide.getCurrentPosition();
+
+            if (-565.0 < leftLinearSlidePos && linearPower < 0) {
+                leftLinearSlide.setPower((linearPower));
+                rightLinearSlide.setPower((linearPower));
+
+                if (-200 < leftLinearSlidePos) {
+                    magazineSpinner.setPosition(0.656);
+                    stationaryMag = false;
+                }
+                else if (-400 < leftLinearSlidePos) {
+                    magazineSpinner.setPosition(0.038);
+                    stationaryMag = false;
+                }
+                else if (leftLinearSlidePos > -580) {
+                    magazineSpinner.setPosition(0.231);
+                    stationaryMag = false;
+                }
+                else {
+                    stationaryMag = true;
+                }
+
+
+            }
+            else if (linearPower > 0) {
+                leftLinearSlide.setPower((linearPower));
+                rightLinearSlide.setPower((linearPower));
+            }
+            else {
+                leftLinearSlide.setPower(0.0);
+                rightLinearSlide.setPower(0.0);
+            }
+
+            // pixel pusher mechanism
+            if (gamepad2.a) {
+                pixelPusher.setPosition(0.75);
+            }
+            else {
+                pixelPusher.setPosition(0.4);
+            }
+
+
+            // magazine
+
+            if (stationaryMag) {
+                magazineSpinner.setPosition(0.741);
+            }
+
+
+            // upside down: magazineSpinner.setPosition(0.038);
+            // drop angle: magazineSpinner.setPosition(0.231);
+
+            if (gamepad2.left_bumper) {
+                magazineRelease.setPosition(0.35);
+            }
+            else {
+                magazineRelease.setPosition(0.717);
+            }
+
+
+            // intake activation
+            if (intakeDown) {
+                intakeServo.setPosition(0.664);
+            }
+            else {
+                intakeServo.setPosition(0.062);
+            }
+            if (gamepad2.x) {
+                intakeDown = true;
+            }
+            if (gamepad2.b) {
+                intakeOn = !intakeOn;
+            }
+            if (intakeOn) {
+                intake.setPower(0.5);
+            }
+            else {
+                intake.setPower(0.0);
+            }
+
+            // airplane launcher
+            if (gamepad2.right_bumper) {
+                airplane.setPosition(0.540);
+            }
+            else {
+                airplane.setPosition(0.610);
+            }
+
+            // gate lifter
+            if (gamepad2.right_trigger >= 0.5) {
+                lifterPosition += ARM_SPEED;
+            }
+            else if (gamepad2.left_trigger >= 0.5) {
+                lifterPosition -= ARM_SPEED;
+            }
+            lifterPosition = Range.clip(lifterPosition, ARM_MIN, ARM_MAX);
+            rightGateLifter.setPosition(lifterPosition);
+            leftGateLifter.setPosition(1-lifterPosition);
+
+
+
+            if (gamepad1.a) {
+                armPosition += ARM_SPEED;
+            }
+            else if (gamepad1.y) {
+                armPosition -= ARM_SPEED;
+            }
+            armPosition = Range.clip(armPosition, ARM_MIN, ARM_MAX);
+            //magazineRelease.setPosition(armPosition);
+
             // Send calculated power to wheels
             leftFrontDrive.setPower(leftFrontPower);
             rightFrontDrive.setPower(rightFrontPower);
@@ -159,6 +321,10 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
             rightBackDrive.setPower(rightBackPower);
 
             // Show the elapsed game time and wheel power.
+            telemetry.addData("Magazine Position", magazineSpinner.getPosition());
+            telemetry.addData("Linear Slide Positions", leftlinearSlidePos);
+            telemetry.addData("Linear Slide Power", linearPower);
+            telemetry.addData("Servo Position", armPosition);
             telemetry.addData("Status", "Run Time: " + runtime.toString());
             telemetry.addData("Front left/Right", "%4.2f, %4.2f", leftFrontPower, rightFrontPower);
             telemetry.addData("Back  left/Right", "%4.2f, %4.2f", leftBackPower, rightBackPower);
